@@ -41,7 +41,7 @@
 <body>
 <h1>The Wedding</h1>
 <h2>Mas Guntur dan Mbak Alia</h2>
-<img src="/Gambar01/image.webp" alt="Mempelai">
+<img src="/Gambar01/image.webp" alt="Mempelai"> // Absolute Path
 <h2>Getting Married</h2>
 
 <div class="links">
