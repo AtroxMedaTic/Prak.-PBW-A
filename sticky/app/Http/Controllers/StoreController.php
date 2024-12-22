@@ -3,18 +3,64 @@
 namespace App\Http\Controllers;
 
 use App\Models\Store;
+use App\Enums\StoreStatus;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreRequest;
+use App\Mail\StorePublished;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class StoreController extends Controller
 {
+    public function list()
+    {
+        $stores = Store::query()
+            ->with('user:id,name')
+            ->withCount('products')
+            ->latest()
+            ->paginate(8);
+
+        return view('stores.list', [
+            'stores' => $stores,
+            'isAdmin' => auth()->user()->isAdmin(),
+        ]);
+    }
+
+    public function approve(Store $store)
+    {
+        $store->status = StoreStatus::ACTIVE;
+        $store->save();
+
+        Mail::to($store->user)->send(new StorePublished($store));
+
+        return back();
+    }
+
+    public function mine(Request $request)
+    {
+        $stores = Store::query()
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->paginate(8);
+
+        return view('stores.mine', [
+            'stores' => $stores,
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        $stores = Store::query()
+            ->where('status', StoreStatus::ACTIVE)
+            ->latest()
+            ->get();
+
         return view('stores.index', [
-            'stores' => Store::latest()->get(),
+            'stores' => $stores,
         ]);
     }
 
@@ -26,7 +72,7 @@ class StoreController extends Controller
         return view('stores.form', [
             'store' => new Store(),
             'page_meta' => [
-                'title' => 'Edit store',
+                'title' => 'Create store',
                 'description' => 'Create new store for yours.',
                 'method' => 'post',
                 'url' => route('stores.store'),
@@ -54,15 +100,18 @@ class StoreController extends Controller
      */
     public function show(Store $store)
     {
-        //
+        return view('stores.show', [
+            'store' => $store->loadCount('products'),
+            'products' => $store->products()->latest()->paginate(12),
+        ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Request $request, Store $store)
+    public function edit(Store $store)
     {
-        abort_if($request->user()->isNot($store->user), 401);
+        Gate::authorize('update', $store);
 
         return view('stores.form', [
             'store' => $store,
@@ -80,10 +129,19 @@ class StoreController extends Controller
      */
     public function update(StoreRequest $request, Store $store)
     {
+        if ($request->hasFile('logo')) {
+            Storage::delete($store->logo);
+            $file = $request->file('logo')->store('images/stores');
+        } else {
+            $file = $store->logo;
+        }
+
         $store->update([
             'name' => $request->name,
             'description' => $request->description,
+            'logo' => $file,
         ]);
+
         return to_route('stores.index');
     }
 
