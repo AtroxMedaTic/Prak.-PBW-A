@@ -19,7 +19,7 @@ class StoreController extends Controller
             ->with('user:id,name')
             ->withCount('products')
             ->latest()
-            ->paginate(8);
+            ->paginate(20);
 
         return view('stores.list', [
             'stores' => $stores,
