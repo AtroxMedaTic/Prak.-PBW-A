@@ -1,7 +1,7 @@
 <x-mail::message>
 # Store Published
 
-The store you are registed ({{ $store->name }}) has been published.
+The store you are registered ({!! '<b>' . $store->name . '</b>' !!}) has been published.
 
 <x-mail::button url="{{ route('stores.show', $store) }}">
 Button Text
@@ -10,3 +10,4 @@ Button Text
 Thanks,<br>
 {{ config('app.name') }}
 </x-mail::message>
+

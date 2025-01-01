@@ -17,6 +17,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([RoleSeeder::class]);
         
-        Model::withoutEvents(fn () => Store::factory(5)->hasProducts(20)->create());
+        Model::withoutEvents(fn () => Store::factory(20)->hasProducts(20)->create());
     }
 }

@@ -18,7 +18,7 @@ class StoreFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => rand(1, 10),
+            'user_id' => rand(1, 20),
             'name' => $title = str(fake()->word())->title(),
             'slug' => str($title)->slug(),
             'description' => fake()->paragraphs(2, true),
